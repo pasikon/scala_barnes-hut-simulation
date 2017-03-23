@@ -58,8 +58,8 @@ package object barneshut {
     val centerY: Float = nw.centerY + nw.size / 2
     val size: Float = nw.size * 2
     val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
-    val massX: Float = (nw.mass * nw.massX + ne.mass * ne.massX + sw.mass * sw.massX + se.mass * se.massX) / mass
-    val massY: Float = (nw.mass * nw.massY + ne.mass * ne.massY + sw.mass * sw.massY + se.mass * se.massY) / mass
+    val massX: Float = if (mass > 0f) (nw.mass * nw.massX + ne.mass * ne.massX + sw.mass * sw.massX + se.mass * se.massX) / mass else centerX
+    val massY: Float = if (mass > 0f) (nw.mass * nw.massY + ne.mass * ne.massY + sw.mass * sw.massY + se.mass * se.massY) / mass else centerY
     val total: Int = nw.total + ne.total + sw.total + se.total
 
     def insert(b: Body): Fork = {
@@ -78,7 +78,15 @@ package object barneshut {
       bodies.foldLeft(0f)((acc, bod) => acc + bod.mass * bod.y) / bodies.foldLeft(0f)(_ + _.mass) : Float
     )
     val total: Int = bodies.size
-    def insert(b: Body): Quad = Leaf(centerX, centerY, size, bodies :+ b)
+    def insert(b: Body): Quad = if(size > minimumSize) {
+      val fl = size / 4
+      Fork(
+        Leaf(centerX - fl, centerY - fl, size / 2, bodies.filter(bo => bo.x <= centerX + fl && bo.y <= centerY + fl)),
+        Leaf(centerX + fl, centerY - fl, size / 2, bodies.filter(bo => bo.x > centerX + fl && bo.y <= centerY + fl)),
+        Leaf(centerX - fl, centerY + fl, size / 2, bodies.filter(bo => bo.x <= centerX + fl && bo.y > centerY + fl)),
+        Leaf(centerX + fl, centerY + fl, size / 2, bodies.filter(bo => bo.x > centerX + fl && bo.y > centerY + fl))
+      ).insert(b)
+    } else Leaf(centerX, centerY, size, bodies :+ b)
   }
 
   def minimumSize = 0.00001f
@@ -177,9 +185,7 @@ package object barneshut {
     def apply(x: Int, y: Int) = matrix(y * sectorPrecision + x)
 
     def combine(that: SectorMatrix): SectorMatrix = {
-      for {
-        i <- this.matrix.indices
-      } yield this.matrix(i) combine that.matrix(i)
+      for (i <- this.matrix.indices) this.matrix(i) = this.matrix(i) combine that.matrix(i)
       this
     }
 
