@@ -127,6 +127,11 @@ import FloatOps._
     assert(res, s"Body not found in the right sector")
   }
 
+  test("Fork insert") {
+    val insert: Quad = Leaf(1f, 1f, 2, Nil).insert(new Body(1f, 0.1f, 0.1f, 0f, 0f))
+
+  }
+
 }
 
 object FloatOps {

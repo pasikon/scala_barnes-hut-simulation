@@ -80,11 +80,15 @@ package object barneshut {
     val total: Int = bodies.size
     def insert(b: Body): Quad = if(size > minimumSize) {
       val fl = size / 4
+      val filter = bodies.filter(bo => bo.x <= centerX + fl && bo.y <= centerY + fl)
+      val filter1 = bodies.filter(bo => bo.x > centerX + fl && bo.y <= centerY + fl)
+      val filter2 = bodies.filter(bo => bo.x <= centerX + fl && bo.y > centerY + fl)
+      val filter3 = bodies.filter(bo => bo.x > centerX + fl && bo.y > centerY + fl)
       Fork(
-        Leaf(centerX - fl, centerY - fl, size / 2, bodies.filter(bo => bo.x <= centerX + fl && bo.y <= centerY + fl)),
-        Leaf(centerX + fl, centerY - fl, size / 2, bodies.filter(bo => bo.x > centerX + fl && bo.y <= centerY + fl)),
-        Leaf(centerX - fl, centerY + fl, size / 2, bodies.filter(bo => bo.x <= centerX + fl && bo.y > centerY + fl)),
-        Leaf(centerX + fl, centerY + fl, size / 2, bodies.filter(bo => bo.x > centerX + fl && bo.y > centerY + fl))
+        if (filter.isEmpty) Empty(centerX - fl, centerY - fl, size / 2) else Leaf(centerX - fl, centerY - fl, size / 2, filter),
+        if (filter1.isEmpty) Empty(centerX + fl, centerY - fl, size / 2) else Leaf(centerX + fl, centerY - fl, size / 2, filter1),
+        if (filter2.isEmpty) Empty(centerX - fl, centerY + fl, size / 2) else Leaf(centerX - fl, centerY + fl, size / 2, filter2),
+        if (filter3.isEmpty) Empty(centerX + fl, centerY + fl, size / 2) else Leaf(centerX + fl, centerY + fl, size / 2, filter3)
       ).insert(b)
     } else Leaf(centerX, centerY, size, bodies :+ b)
   }
